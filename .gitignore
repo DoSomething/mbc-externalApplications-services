@@ -1,6 +1,7 @@
 # Ignore configuration files that may contain sensitive information.
 mb-config.inc
 mb-secure-config.inc
+mb-config.json
 
 # Ignor composer working files
 composer.lock
