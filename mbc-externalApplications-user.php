@@ -22,7 +22,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require __DIR__ . '/mb-secure-config.inc';
 
 require __DIR__ . '/MBC_ExternalApplications_User.class.inc';
-require __DIR__ . '/messagebroker-config/MessageBrokerConfig.class.inc';
+require __DIR__ . '/messagebroker-config/MB_Configuration.class.inc';
 
 
 // Settings
