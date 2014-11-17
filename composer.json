@@ -4,7 +4,7 @@
     "version": "0.1.0",
     "description": "A consummer app for the Message Broker system that precesses messages from external applications. The routing key and payload values of the message will trigger various systems within the Message Broker system.",
     "keywords": ["message broker"],
-    "homepage": "git@github.com:DoSomething/mbc-externalApplications-services.git",
+    "homepage": "https://github.com/DoSomething/mbc-externalApplications-services",
     "license" : "MIT",
     "authors": [
     {
