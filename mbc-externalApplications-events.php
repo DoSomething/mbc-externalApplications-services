@@ -16,10 +16,10 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 // Load configuration settings common to the Message Broker system
 // symlinks in the project directory point to the actual location of the files
-require __DIR__ . '/mb-secure-config.inc';
+require_once __DIR__ . '/mb-secure-config.inc';
 
-require __DIR__ . '/MBC_ExternalApplications_Events.class.inc';
-require __DIR__ . '/messagebroker-config/MessageBrokerConfig.class.inc';
+require_once __DIR__ . '/MBC_ExternalApplications_Events.class.inc';
+require_once __DIR__ . '/messagebroker-config/MessageBrokerConfig.class.inc';
 
 
 // Settings
@@ -37,30 +37,30 @@ $settings = array(
 $config = array();
 $source = __DIR__ . '/mb_config.json';
 $mb_config = new MB_Configuration($source, $settings);
-$mb_exchange_directExternalApplicationsExchange = $mb_config->exchangeSettings('directExternalApplicationsExchange');
+$externalApplicationsExchange = $mb_config->exchangeSettings('directExternalApplicationsExchange');
 
 $config['exchange'] = array(
-  'name' => $mb_exchange_directExternalApplicationsExchange->name,
-  'type' => $mb_exchange_directExternalApplicationsExchange->type,
-  'passive' => $mb_exchange_directExternalApplicationsExchange->passive,
-  'durable' => $mb_exchange_directExternalApplicationsExchange->durable,
-  'auto_delete' => $mb_exchange_directExternalApplicationsExchange->auto_delete,
+  'name' => $externalApplicationsExchange->name,
+  'type' => $externalApplicationsExchange->type,
+  'passive' => $externalApplicationsExchange->passive,
+  'durable' => $externalApplicationsExchange->durable,
+  'auto_delete' => $externalApplicationsExchange->auto_delete,
 );
 $config['queue'][] = array(
-  'name' => $mb_exchange_directExternalApplicationsExchange->queues->externalApplicationEventQueue->name,
-  'passive' => $mb_exchange_directExternalApplicationsExchange->queues->externalApplicationEventQueue->passive,
-  'durable' => $mb_exchange_directExternalApplicationsExchange->queues->externalApplicationEventQueue->durable,
-  'exclusive' => $mb_exchange_directExternalApplicationsExchange->queues->externalApplicationEventQueue->exclusive,
-  'auto_delete' => $mb_exchange_directExternalApplicationsExchange->queues->externalApplicationEventQueue->auto_delete,
-  'bindingKey' => $mb_exchange_directExternalApplicationsExchange->queues->externalApplicationEventQueue->binding_key,
+  'name' => $externalApplicationsExchange->queues->externalApplicationEventQueue->name,
+  'passive' => $externalApplicationsExchange->queues->externalApplicationEventQueue->passive,
+  'durable' => $externalApplicationsExchange->queues->externalApplicationEventQueue->durable,
+  'exclusive' => $externalApplicationsExchange->queues->externalApplicationEventQueue->exclusive,
+  'auto_delete' => $externalApplicationsExchange->queues->externalApplicationEventQueue->auto_delete,
+  'bindingKey' => $externalApplicationsExchange->queues->externalApplicationEventQueue->binding_key,
 );
 
 
 
-echo '------- mbc-externalApplications-events START: ' . date('D M j G:i:s T Y') . ' -------', "\n";
+echo '------- mbc-externalApplications-events START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
 // Kick off
 $mb = new MessageBroker($credentials, $config);
 $mb->consumeMessage(array(new MBC_externalApplications_events($settings), 'consumeQueue'));
 
-echo '------- mbc-externalApplications-events END: ' . date('D M j G:i:s T Y') . ' -------', "\n";
+echo '------- mbc-externalApplications-events END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
