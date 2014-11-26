@@ -65,22 +65,27 @@ class MBC_ExternalApplications_User
 
     $message = unserialize($payload->body);
 
+    $isAffiliate = FALSE;
+    if (isset($message->country_code)) {
+      $isAffiliate = $this->toolbox->isDSAffiliate($message->country_code);
+    }
+
     // US based user created, Send SMS
-    if (empty($message->mobile)) {
+    if ($message['mobile'] !== NULL) {
       $this->produceUSUser($message);
 
     // Only create Drupal users in international affiliate sites when the user
     // is submitting from the specific affiliate country.
     }
-    elseif (!is_null($message->email) && $this->toolbox->isDSAffiliate($message->country_code)) {
+    elseif ($message['email'] !== NULL && $isAffiliate) {
       $this->produceInternationalAffilateUser($message);
     }
     // International, non-affiliate origin - Send email only
-    elseif (!is_null($message->email)) {
-      $this->produceInternationalUser($payloadDetails);
+    elseif ($message['email'] !== NULL) {
+      $this->produceInternationalUser($message);
     }
     else {
-      echo 'ERROR consumerQueue: email and mobile not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
+      echo 'ERROR consumerQueue: email or mobile not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
     }
 
     echo '------- mbc-externalApplication-users->consumeQueue() END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
@@ -131,7 +136,7 @@ class MBC_ExternalApplications_User
    */
   private function produceInternationalAffilateUser($message) {
     $template = 'affiliate-country-account-creation';
-    produceTransactionalEmail($message, $template);
+    $this->produceTransactionalEmail($message, $template);
   }
 
   /**
@@ -143,7 +148,7 @@ class MBC_ExternalApplications_User
    */
   private function produceInternationalUser($message) {
     $template = 'non-affiliate-voting-confirmation';
-    produceTransactionalEmail($message, $template);
+    $this->produceTransactionalEmail($message, $template);
   }
 
   /**
