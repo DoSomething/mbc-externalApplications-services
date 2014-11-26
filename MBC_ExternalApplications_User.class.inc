@@ -170,12 +170,12 @@ class MBC_ExternalApplications_User
       'auto_delete' => $transactionalExchange->auto_delete,
     );
     $config['queue'][] = array(
-      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
-      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
-      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
-      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
-      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
-      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
+      'name' => $transactionalExchange->queues->transactionalQueue->name,
+      'passive' => $transactionalExchange->queues->transactionalQueue->passive,
+      'durable' => $transactionalExchange->queues->transactionalQueue->durable,
+      'exclusive' => $transactionalExchange->queues->transactionalQueue->exclusive,
+      'auto_delete' => $transactionalExchange->queues->transactionalQueue->auto_delete,
+      'binding_pattern' => $transactionalExchange->queues->transactionalQueue->binding_pattern,
     );
     $config['routing_key'] = 'user.cgg.transactional';
 
@@ -184,7 +184,7 @@ class MBC_ExternalApplications_User
 
     $mb = new MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
-    echo 'produceInternationalAffilateUser() - email message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo 'produceTransactionalEmail() - email message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
 }
