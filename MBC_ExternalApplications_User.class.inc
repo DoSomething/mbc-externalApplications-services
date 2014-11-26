@@ -97,22 +97,22 @@ class MBC_ExternalApplications_User
     $config = array();
     $source = __DIR__ . '/messagebroker-config/mb_config.json';
     $mb_config = new MB_Configuration($source, $this->settings);
-    $mobileCommonsExchange = $mb_config->exchangeSettings('transactionalExchange');
+    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
     $config['exchange'] = array(
-      'name' => $mobileCommonsExchange->name,
-      'type' => $mobileCommonsExchange->type,
-      'passive' => $mobileCommonsExchange->passive,
-      'durable' => $mobileCommonsExchange->durable,
-      'auto_delete' => $mobileCommonsExchange->auto_delete,
+      'name' => $transactionalExchange->name,
+      'type' => $transactionalExchange->type,
+      'passive' => $transactionalExchange->passive,
+      'durable' => $transactionalExchange->durable,
+      'auto_delete' => $transactionalExchange->auto_delete,
     );
     $config['queue'][] = array(
-      'name' => $mobileCommonsExchange->queues->mobileCommonsQueue->name,
-      'passive' => $mobileCommonsExchange->queues->mobileCommonsQueue->passive,
-      'durable' => $mobileCommonsExchange->queues->mobileCommonsQueue->durable,
-      'exclusive' => $mobileCommonsExchange->queues->mobileCommonsQueue->exclusive,
-      'auto_delete' => $mobileCommonsExchange->queues->mobileCommonsQueue->auto_delete,
-      'binding_pattern' => $mobileCommonsExchange->queues->mobileCommonsQueue->binding_pattern,
+      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
+      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
+      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
+      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
+      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
+      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
     );
     $config['routing_key'] = 'user.registration.cgg';
 
@@ -130,7 +130,8 @@ class MBC_ExternalApplications_User
    *   Message Broker functionality.
    */
   private function produceInternationalAffilateUser($message) {
-
+    $template = 'affiliate-country-account-creation';
+    produceTransactionalEmail($message, $template);
   }
 
   /**
@@ -140,8 +141,50 @@ class MBC_ExternalApplications_User
    *   Details about the transaction that has triggered producing international,
    *   non-affiliate Message Broker functionality.
    */
-  private function produceInternational($message) {
+  private function produceInternationalUser($message) {
+    $template = 'non-affiliate-voting-confirmation';
+    produceTransactionalEmail($message, $template);
+  }
 
+  /**
+   * Produce international affiliate users.
+   *
+   * @param array $message
+   *   Details about the transaction that has triggered producing international,
+   *   Message Broker functionality.
+   * @param array $template
+   *   The Mandrill template name to use for the transactional.
+   */
+  private function produceTransactionalEmail($message, $template) {
+
+    $config = array();
+    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($source, $this->settings);
+    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
+
+    $config['exchange'] = array(
+      'name' => $transactionalExchange->name,
+      'type' => $transactionalExchange->type,
+      'passive' => $transactionalExchange->passive,
+      'durable' => $transactionalExchange->durable,
+      'auto_delete' => $transactionalExchange->auto_delete,
+    );
+    $config['queue'][] = array(
+      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
+      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
+      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
+      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
+      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
+      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
+    );
+    $config['routing_key'] = 'user.cgg.transactional';
+
+    $message['email_template'] = $template;
+    $payload = serialize($message);
+
+    $mb = new MessageBroker($this->credentials, $config);
+    $mb->publishMessage($payload);
+    echo 'produceInternationalAffilateUser() - email message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
 }
