@@ -41,6 +41,8 @@ class MBC_ExternalApplications_User
   /**
    * Constructor for MBC_ExternalApplications_User
    *
+   * @param array $credentials
+   *   Connection credentials
    * @param array $settings
    *   Settings of additional services used by the class.
    */
@@ -147,7 +149,8 @@ class MBC_ExternalApplications_User
    *   non-affiliate Message Broker functionality.
    */
   private function produceInternationalUser($message) {
-    $template = 'non-affiliate-voting-confirmation';
+    // @todo: Missing non-affiliate specific
+    $template = 'affiliate-country-account-creation';
     $this->produceTransactionalEmail($message, $template);
   }
 

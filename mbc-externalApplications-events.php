@@ -61,6 +61,6 @@ echo '------- mbc-externalApplications-events START: ' . date('D M j G:i:s T Y')
 
 // Kick off
 $mb = new MessageBroker($credentials, $config);
-$mb->consumeMessage(array(new MBC_externalApplications_events($settings), 'consumeQueue'));
+$mb->consumeMessage(array(new MBC_externalApplications_events($credentials, $settings), 'consumeQueue'));
 
 echo '------- mbc-externalApplications-events END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
