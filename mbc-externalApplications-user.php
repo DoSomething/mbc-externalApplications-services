@@ -12,8 +12,6 @@
  *   - Mandrill transactional signup email message if a Drupal user is created
  */
 
-use DoSomething\MBStatTracker\StatHat;
-
 // Load up the Composer autoload magic
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -38,7 +36,7 @@ $settings = array(
 );
 
 $config = array();
-$source = __DIR__ . '/mb_config.json';
+$source = __DIR__ . '/messagebroker-config/mb_config.json';
 $mb_config = new MB_Configuration($source, $settings);
 $externalApplicationsExchange = $mb_config->exchangeSettings('directExternalApplicationsExchange');
 
@@ -59,11 +57,10 @@ $config['queue'][] = array(
 );
 
 
-
 echo '------- mbc-externalApplications-user START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
 // Kick off
 $mb = new MessageBroker($credentials, $config);
-$mb->consumeMessage(array(new MBC_externalApplications_user($settings), 'consumeQueue'));
+$mb->consumeMessage(array(new MBC_externalApplications_user($credentials, $settings), 'consumeQueue'));
 
 echo '------- mbc-externalApplications-user END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;

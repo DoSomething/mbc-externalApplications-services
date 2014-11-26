@@ -1,5 +1,6 @@
 <?php
 
+use DoSomething\MB_Toolbox\MB_Toolbox;
 use DoSomething\MBStatTracker\StatHat;
 
 /**
@@ -10,18 +11,18 @@ class MBC_ExternalApplications_User
 {
 
   /**
-   * Message Broker object that details the connection to RabbitMQ.
+   * Access credentials settings
    *
    * @var object
    */
-  private $messageBroker;
+  private $credentials;
 
   /**
-   * Details of the channel connection in use by RabbitMQ.
+   * Service settings
    *
-   * @var object
+   * @var array
    */
-  private $channel;
+  private $settings;
 
   /**
    * Setting from external services - StatHat.
@@ -43,14 +44,12 @@ class MBC_ExternalApplications_User
    * @param array $settings
    *   Settings of additional services used by the class.
    */
-  public function __construct($mb, $settings) {
+  public function __construct($credentials, $settings) {
 
-    $this->messageBroker = $mb;
-    $connection = $this->messageBroker->connection;
-    $this->channel = $connection->channel();
+    $this->credentials = $credentials;
+    $this->settings = $settings;
 
-    $this->toolbox = new MB_Toolbox();
-
+    $this->toolbox = new MB_Toolbox($settings);
     $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
     $this->statHat->setIsProduction(FALSE);
   }
@@ -61,13 +60,13 @@ class MBC_ExternalApplications_User
    * @param string $payload
    *   The contents of the message in a serial format
    */
-  public function consumerQueue($payload) {
+  public function consumeQueue($payload) {
     echo '------- mbc-externalApplication-users->consumeQueue() START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
     $message = unserialize($payload->body);
 
     // US based user created, Send SMS
-    if (!is_null($message->mobile)) {
+    if (empty($message->mobile)) {
       $this->produceUSUser($message);
 
     // Only create Drupal users in international affiliate sites when the user
@@ -95,6 +94,32 @@ class MBC_ExternalApplications_User
    */
   private function produceUSUser($message) {
 
+    $config = array();
+    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($source, $this->settings);
+    $mobileCommonsExchange = $mb_config->exchangeSettings('transactionalExchange');
+
+    $config['exchange'] = array(
+      'name' => $mobileCommonsExchange->name,
+      'type' => $mobileCommonsExchange->type,
+      'passive' => $mobileCommonsExchange->passive,
+      'durable' => $mobileCommonsExchange->durable,
+      'auto_delete' => $mobileCommonsExchange->auto_delete,
+    );
+    $config['queue'][] = array(
+      'name' => $mobileCommonsExchange->queues->mobileCommonsQueue->name,
+      'passive' => $mobileCommonsExchange->queues->mobileCommonsQueue->passive,
+      'durable' => $mobileCommonsExchange->queues->mobileCommonsQueue->durable,
+      'exclusive' => $mobileCommonsExchange->queues->mobileCommonsQueue->exclusive,
+      'auto_delete' => $mobileCommonsExchange->queues->mobileCommonsQueue->auto_delete,
+      'binding_pattern' => $mobileCommonsExchange->queues->mobileCommonsQueue->binding_pattern,
+    );
+    $config['routing_key'] = 'user.registration.cgg';
+
+    $mbMobileCommons = new MessageBroker($this->credentials, $config);
+    $payload = serialize($message);
+    $mbMobileCommons->publishMessage($payload);
+    echo 'produceUSUser() - SMS message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
   /**
