@@ -75,14 +75,10 @@ class MBC_ExternalApplications_User
     // US based user created, Send SMS
     if ($message['mobile'] !== NULL) {
       $this->produceUSUser($message);
-
-    // Only create Drupal users in international affiliate sites when the user
-    // is submitting from the specific affiliate country.
     }
     elseif ($message['email'] !== NULL && $isAffiliate) {
       $this->produceInternationalAffilateUser($message);
     }
-    // International, non-affiliate origin - Send email only
     elseif ($message['email'] !== NULL) {
       $this->produceInternationalUser($message);
     }
@@ -137,8 +133,7 @@ class MBC_ExternalApplications_User
    *   Message Broker functionality.
    */
   private function produceInternationalAffilateUser($message) {
-    $template = 'affiliate-country-account-creation';
-    $this->produceTransactionalEmail($message, $template);
+
   }
 
   /**
@@ -149,9 +144,7 @@ class MBC_ExternalApplications_User
    *   non-affiliate Message Broker functionality.
    */
   private function produceInternationalUser($message) {
-    // @todo: Missing non-affiliate specific
-    $template = 'affiliate-country-account-creation';
-    $this->produceTransactionalEmail($message, $template);
+
   }
 
   /**
