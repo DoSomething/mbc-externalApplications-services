@@ -1,5 +1,4 @@
 <?php
-
 use DoSomething\MB_Toolbox\MB_Toolbox;
 use DoSomething\MBStatTracker\StatHat;
 
@@ -11,20 +10,6 @@ class MBC_ExternalApplications_Events
 {
 
   /**
-   * Access credentials settings
-   *
-   * @var object
-   */
-  private $credentials;
-
-  /**
-   * Service settings
-   *
-   * @var array
-   */
-  private $settings;
-
-  /**
    * Setting from external services - StatHat.
    *
    * @var object
@@ -32,9 +17,9 @@ class MBC_ExternalApplications_Events
   private $toolbox;
 
   /**
-   * Setting from external services - StatHat.
+   * Setting from external services - Mailchimp.
    *
-   * @var object
+   * @var array
    */
   private $statHat;
 
@@ -45,9 +30,8 @@ class MBC_ExternalApplications_Events
    *   Settings of additional services used by the class.
    */
   public function __construct($settings) {
-
-    $this->credentials = $credentials;
-    $this->settings = $settings;
+    
+    $this->toolbox = new MB_Toolbox($settings);
 
     $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
     $this->statHat->setIsProduction(FALSE);
@@ -57,6 +41,7 @@ class MBC_ExternalApplications_Events
    * Consumer entries in 
    */
   public function consumeQueue($payload) {
+
     echo '------- mbc-externalApplication-events->consumeQueue() START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
     $message = unserialize($payload->body);
@@ -66,36 +51,33 @@ class MBC_ExternalApplications_Events
       $isAffiliate = $this->toolbox->isDSAffiliate($message->country_code);
     }
 
-    // US based user created, Send SMS
     if ($message['email'] !== NULL && $isAffiliate) {
       $this->produceInternationalAffilateEvent($message);
     }
-    // International, non-affiliate origin - Send email only
     elseif ($message['email'] !== NULL) {
       $this->produceInternationalEvent($message);
     }
     else {
-      echo 'ERROR consumerQueue: email not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
+      echo 'ERROR consumerQueue: email or mobile not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
     }
-
 
     echo '------- mbc-externalApplication-events->consumeQueue() END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
-  /**
-   * Produce international affiliate event.
+    /**
+   * Produce international affiliate event (vote).
    *
    * @param array $message
    *   Details about the transaction that has triggered producing international,
    *   Message Broker functionality.
    */
-  private function produceInternationalAffilateUser($message) {
+  private function produceInternationalAffilateEvent($message) {
     $template = 'affiliated-country-voting-confirmation';
     $this->produceTransactionalEmail($message, $template);
   }
 
   /**
-   * Produce international events.
+   * Produce international event (vote).
    *
    * @param array $message
    *   Details about the transaction that has triggered producing international,
@@ -105,7 +87,7 @@ class MBC_ExternalApplications_Events
     $template = 'non-affiliate-voting-confirmation';
     $this->produceTransactionalEmail($message, $template);
   }
-
+  
   /**
    * Produce international affiliate users.
    *
@@ -137,7 +119,7 @@ class MBC_ExternalApplications_Events
       'auto_delete' => $transactionalExchange->queues->transactionalQueue->auto_delete,
       'binding_pattern' => $transactionalExchange->queues->transactionalQueue->binding_pattern,
     );
-    $config['routing_key'] = 'user.cgg.transactional';
+    $config['routing_key'] = 'vote.cgg.transactional';
 
     $message['email_template'] = $template;
     $payload = serialize($message);
@@ -146,5 +128,6 @@ class MBC_ExternalApplications_Events
     $mb->publishMessage($payload);
     echo 'produceTransactionalEmail() - email message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
+
 
 }
