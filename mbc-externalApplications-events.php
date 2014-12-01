@@ -19,7 +19,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/mb-secure-config.inc';
 
 require_once __DIR__ . '/MBC_ExternalApplications_Events.class.inc';
-require_once __DIR__ . '/messagebroker-config/MessageBrokerConfig.class.inc';
+require_once __DIR__ . '/messagebroker-config/MB_Configuration.class.inc';
 
 
 // Settings
@@ -35,7 +35,7 @@ $settings = array(
 );
 
 $config = array();
-$source = __DIR__ . '/mb_config.json';
+$source = __DIR__ . '/messagebroker-config/mb_config.json';
 $mb_config = new MB_Configuration($source, $settings);
 $externalApplicationsExchange = $mb_config->exchangeSettings('directExternalApplicationsExchange');
 

@@ -29,10 +29,12 @@ class MBC_ExternalApplications_Events
    * @param array $settings
    *   Settings of additional services used by the class.
    */
-  public function __construct($settings) {
-    
-    $this->toolbox = new MB_Toolbox($settings);
+  public function __construct($credentials, $settings) {
 
+    $this->credentials = $credentials;
+    $this->settings = $settings;
+
+    $this->toolbox = new MB_Toolbox($settings);
     $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
     $this->statHat->setIsProduction(FALSE);
   }
