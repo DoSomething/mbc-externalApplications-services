@@ -50,7 +50,7 @@ class MBC_ExternalApplications_Events
 
     $isAffiliate = FALSE;
     if (isset($message->country_code)) {
-      $isAffiliate = $this->toolbox->isDSAffiliate($message->country_code);
+      $isAffiliate = $this->toolbox->isDSAffiliate($message['country_code']);
     }
 
     if ($message['email'] !== NULL && $isAffiliate) {
@@ -74,8 +74,9 @@ class MBC_ExternalApplications_Events
    *   Message Broker functionality.
    */
   private function produceInternationalAffilateEvent($message) {
-    $template = 'affiliated-country-voting-confirmation';
-    $this->produceTransactionalEmail($message, $template);
+    $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
+    $message['email_template'] = 'affiliated-country-voting-confirmation';
+    $this->produceTransactionalEmail($message);
   }
 
   /**
@@ -86,8 +87,9 @@ class MBC_ExternalApplications_Events
    *   non-affiliate Message Broker functionality.
    */
   private function produceInternationalEvent($message) {
-    $template = 'non-affiliate-voting-confirmation';
-    $this->produceTransactionalEmail($message, $template);
+    $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
+    $message['email_template'] = 'non-affiliate-voting-confirmation';
+    $this->produceTransactionalEmail($message);
   }
   
   /**
@@ -96,10 +98,8 @@ class MBC_ExternalApplications_Events
    * @param array $message
    *   Details about the transaction that has triggered producing international,
    *   Message Broker functionality.
-   * @param array $template
-   *   The Mandrill template name to use for the transactional.
    */
-  private function produceTransactionalEmail($message, $template) {
+  private function produceTransactionalEmail($message) {
 
     $config = array();
     $source = __DIR__ . '/messagebroker-config/mb_config.json';
@@ -123,7 +123,6 @@ class MBC_ExternalApplications_Events
     );
     $config['routing_key'] = 'vote.cgg.transactional';
 
-    $message['email_template'] = $template;
     $payload = serialize($message);
 
     $mb = new MessageBroker($this->credentials, $config);
