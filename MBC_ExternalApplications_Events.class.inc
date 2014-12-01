@@ -60,13 +60,13 @@ class MBC_ExternalApplications_Events
       $this->produceInternationalEvent($message);
     }
     else {
-      echo 'ERROR consumerQueue: email or mobile not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
+      echo 'ERROR consumeQueue: email not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
     }
 
     echo '------- mbc-externalApplication-events->consumeQueue() END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
-    /**
+  /**
    * Produce international affiliate event (vote).
    *
    * @param array $message
