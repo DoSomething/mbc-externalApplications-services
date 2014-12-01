@@ -41,6 +41,8 @@ class MBC_ExternalApplications_User
   /**
    * Constructor for MBC_ExternalApplications_User
    *
+   * @param array $credentials
+   *   Connection credentials
    * @param array $settings
    *   Settings of additional services used by the class.
    */
