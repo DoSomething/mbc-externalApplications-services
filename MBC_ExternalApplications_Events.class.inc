@@ -54,7 +54,7 @@ class MBC_ExternalApplications_Events
     }
 
     if ($message['email'] !== NULL && $isAffiliate) {
-      $this->produceInternationalAffilateEvent($message);
+      $this->produceInternationalAffilateEvent($message, $isAffiliate);
     }
     elseif ($message['email'] !== NULL) {
       $this->produceInternationalEvent($message);
@@ -76,7 +76,8 @@ class MBC_ExternalApplications_Events
    *   Details about the transaction that has triggered producing international,
    *   Message Broker functionality.
    */
-  private function produceInternationalAffilateEvent($message) {
+  private function produceInternationalAffilateEvent($message, $isAffiliate) {
+    $message['merge_vars']['AFFILIATE_URL'] = $isAffiliate['url'];
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'affiliated-country-voting-confirmation';
     $this->produceTransactionalEmail($message);
