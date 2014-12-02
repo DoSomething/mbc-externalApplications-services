@@ -60,7 +60,7 @@ class MBC_ExternalApplications_Events
       $this->produceInternationalEvent($message);
     }
     elseif ($message['email'] === NULL && isset($message['mobile'])) {
-      echo 'mobile signup and vote - ' . $message['mobile'], PHP_EOL;
+      echo 'mobile vote - ' . $message['mobile'] . ': ' . $message['country_code'], PHP_EOL;
     }
     else {
       echo 'ERROR consumeQueue: email not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
@@ -130,7 +130,7 @@ class MBC_ExternalApplications_Events
 
     $mb = new MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
-    echo 'produceTransactionalEmail() - email message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo 'produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
 

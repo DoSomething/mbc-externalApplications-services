@@ -68,8 +68,8 @@ class MBC_ExternalApplications_User
     $message = unserialize($payload->body);
 
     $isAffiliate = FALSE;
-    if (isset($message->country_code)) {
-      $isAffiliate = $this->toolbox->isDSAffiliate($message->country_code);
+    if (isset($message['country_code'])) {
+      $isAffiliate = $this->toolbox->isDSAffiliate($message['country_code']);
     }
 
     // US based user created, Send SMS
@@ -133,7 +133,7 @@ class MBC_ExternalApplications_User
    *   Message Broker functionality.
    */
   private function produceInternationalAffilateUser($message) {
-
+    echo 'produceInternationalAffilateUser - ' . $message['email'] . ': ' . $message['country_code'] . ' affilate country user vote.', PHP_EOL;
   }
 
   /**
@@ -144,7 +144,7 @@ class MBC_ExternalApplications_User
    *   non-affiliate Message Broker functionality.
    */
   private function produceInternationalUser($message) {
-
+    echo 'produceInternationalUser - ' . $message['email'] . ': ' . $message['country_code'] . ' - international user vote.', PHP_EOL;
   }
 
   /**
