@@ -81,6 +81,7 @@ class MBC_ExternalApplications_Events
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'affiliated-country-voting-confirmation';
     $this->produceTransactionalEmail($message);
+    echo '- produceInternationalAffilateEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'] . ' - isAffiliate url: ' . $isAffiliate['url'], PHP_EOL;
   }
 
   /**
@@ -94,6 +95,7 @@ class MBC_ExternalApplications_Events
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'non-affiliate-voting-confirmation';
     $this->produceTransactionalEmail($message);
+    echo '- produceInternationalEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'], PHP_EOL;
   }
   
   /**
