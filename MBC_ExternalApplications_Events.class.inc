@@ -77,6 +77,9 @@ class MBC_ExternalApplications_Events
    *   Message Broker functionality.
    */
   private function produceInternationalAffilateEvent($message, $isAffiliate) {
+
+    $this->produceMailchimpAffilate($message);
+
     $message['merge_vars']['AFFILIATE_URL'] = $isAffiliate['url'];
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'affiliated-country-voting-confirmation';
@@ -91,11 +94,14 @@ class MBC_ExternalApplications_Events
    *   non-affiliate Message Broker functionality.
    */
   private function produceInternationalEvent($message) {
+
+    $this->produceMailchimpInternational($message);
+
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'non-affiliate-voting-confirmation';
     $this->produceTransactionalEmail($message);
   }
-  
+
   /**
    * Produce international affiliate users.
    *
@@ -134,5 +140,26 @@ class MBC_ExternalApplications_Events
     echo 'produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
+  /**
+   * Produce affiliate Mailchimp entries.
+   *
+   * @param array $message
+   *   Details about the transaction that has triggered producing international,
+   *   Message Broker functionality.
+   */
+  private function produceMailchimpAffilate($message) {
+
+  }
+
+  /**
+   * Produce international Mailchimp entries.
+   *
+   * @param array $message
+   *   Details about the transaction that has triggered producing international,
+   *   Message Broker functionality.
+   */
+  private function produceMailchimpInternational($message) {
+
+  }
 
 }
