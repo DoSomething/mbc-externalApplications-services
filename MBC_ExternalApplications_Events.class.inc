@@ -49,7 +49,7 @@ class MBC_ExternalApplications_Events
     $message = unserialize($payload->body);
 
     $isAffiliate = FALSE;
-    if (isset($message->country_code)) {
+    if (isset($message['country_code']) && $message['country_code'] != 'US') {
       $isAffiliate = $this->toolbox->isDSAffiliate($message['country_code']);
     }
 
@@ -58,6 +58,9 @@ class MBC_ExternalApplications_Events
     }
     elseif ($message['email'] !== NULL) {
       $this->produceInternationalEvent($message);
+    }
+    elseif ($message['email'] === NULL && isset($message['mobile'])) {
+      echo 'mobile signup and vote - ' . $message['mobile'], PHP_EOL;
     }
     else {
       echo 'ERROR consumeQueue: email not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
