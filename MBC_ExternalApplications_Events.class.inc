@@ -36,7 +36,7 @@ class MBC_ExternalApplications_Events
 
     $this->toolbox = new MB_Toolbox($settings);
     $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
-    $this->statHat->setIsProduction(FALSE);
+    $this->statHat->setIsProduction(TRUE);
   }
 
   /* 
@@ -80,6 +80,9 @@ class MBC_ExternalApplications_Events
 
     $this->produceMailchimpAffilate($message);
 
+    $this->statHat->addStatName('produceInternationalAffiliateEvent');
+    $this->statHat->reportCount(1);
+
     $message['merge_vars']['AFFILIATE_URL'] = $isAffiliate['url'];
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'affiliated-country-voting-confirmation';
@@ -96,6 +99,9 @@ class MBC_ExternalApplications_Events
   private function produceInternationalEvent($message) {
 
     $this->produceMailchimpInternational($message);
+
+    $this->statHat->addStatName('produceInternationalEvent');
+    $this->statHat->reportCount(1);
 
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'non-affiliate-voting-confirmation';
@@ -138,6 +144,10 @@ class MBC_ExternalApplications_Events
     $mb = new MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
     echo 'produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceTransactionalEmail');
+    $this->statHat->reportCount(1);
   }
 
   /**
@@ -151,7 +161,11 @@ class MBC_ExternalApplications_Events
 
     $message['affiliate'] = TRUE;
     $this->sendEmailServiceMessage($message);
+
     echo 'produceMailchimpAffilate()', PHP_EOL;
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceMailchimpAffilate');
+    $this->statHat->reportCount(1);
   }
 
   /**
@@ -164,7 +178,11 @@ class MBC_ExternalApplications_Events
 
     $message['affiliate'] = FALSE;
     $this->sendEmailServiceMessage($message);
+
     echo 'produceMailchimpInternational()', PHP_EOL;
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceMailchimpInternational');
+    $this->statHat->reportCount(1);
   }
 
   /**
@@ -202,8 +220,11 @@ class MBC_ExternalApplications_Events
 
     $mb = new MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
-    echo 'sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo 'sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('sendEmailServiceMessage');
+    $this->statHat->reportCount(1);
   }
 
 }
