@@ -144,21 +144,65 @@ class MBC_ExternalApplications_Events
    * Produce affiliate Mailchimp entries.
    *
    * @param array $message
-   *   Details about the transaction that has triggered producing international,
-   *   Message Broker functionality.
+   *   Compose details about international affiliate transaction to send
+   *   to Mailchimp.
    */
   private function produceMailchimpAffilate($message) {
 
+    $message['affiliate'] = TRUE;
+    $this->sendEmailServiceMessage($message);
+    echo 'produceMailchimpAffilate()', PHP_EOL;
   }
 
   /**
    * Produce international Mailchimp entries.
    *
    * @param array $message
-   *   Details about the transaction that has triggered producing international,
-   *   Message Broker functionality.
+   *   Compose details about international transaction to send to Mailchimp.
    */
   private function produceMailchimpInternational($message) {
+
+    $message['affiliate'] = FALSE;
+    $this->sendEmailServiceMessage($message);
+    echo 'produceMailchimpInternational()', PHP_EOL;
+  }
+
+  /**
+   * Produce emailService message.
+   *
+   * @param array $message
+   *   Details about the transaction that has triggered producing Message
+   *   Broker message.
+   */
+  private function sendEmailServiceMessage($message) {
+
+    $config = array();
+    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($source, $this->settings);
+    $emailServiceExchange = $mb_config->exchangeSettings('topicEmailService');
+
+    $config['exchange'] = array(
+      'name' => $emailServiceExchange->name,
+      'type' => $emailServiceExchange->type,
+      'passive' => $emailServiceExchange->passive,
+      'durable' => $emailServiceExchange->durable,
+      'auto_delete' => $emailServiceExchange->auto_delete,
+    );
+    $config['queue'][] = array(
+      'name' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->name,
+      'passive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->passive,
+      'durable' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->durable,
+      'exclusive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->exclusive,
+      'auto_delete' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->auto_delete,
+      'binding_pattern' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->binding_pattern,
+    );
+    $config['routing_key'] = 'subscribe.mailchimp.cgg';
+
+    $payload = serialize($message);
+
+    $mb = new MessageBroker($this->credentials, $config);
+    $mb->publishMessage($payload);
+    echo 'sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
   }
 
