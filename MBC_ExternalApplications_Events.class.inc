@@ -36,7 +36,7 @@ class MBC_ExternalApplications_Events
 
     $this->toolbox = new MB_Toolbox($settings);
     $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
-    $this->statHat->setIsProduction(FALSE);
+    $this->statHat->setIsProduction(TRUE);
   }
 
   /* 
@@ -77,6 +77,12 @@ class MBC_ExternalApplications_Events
    *   Message Broker functionality.
    */
   private function produceInternationalAffilateEvent($message, $isAffiliate) {
+
+    $this->produceMailchimpAffilate($message);
+
+    $this->statHat->addStatName('produceInternationalAffiliateEvent');
+    $this->statHat->reportCount(1);
+
     $message['merge_vars']['AFFILIATE_URL'] = $isAffiliate['url'];
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'affiliated-country-voting-confirmation';
@@ -92,12 +98,18 @@ class MBC_ExternalApplications_Events
    *   non-affiliate Message Broker functionality.
    */
   private function produceInternationalEvent($message) {
+
+    $this->produceMailchimpInternational($message);
+
+    $this->statHat->addStatName('produceInternationalEvent');
+    $this->statHat->reportCount(1);
+
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'non-affiliate-voting-confirmation';
     $this->produceTransactionalEmail($message);
     echo '- produceInternationalEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'], PHP_EOL;
   }
-  
+
   /**
    * Produce international affiliate users.
    *
@@ -134,7 +146,87 @@ class MBC_ExternalApplications_Events
     $mb = new MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
     echo 'produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceTransactionalEmail');
+    $this->statHat->reportCount(1);
   }
 
+  /**
+   * Produce affiliate Mailchimp entries.
+   *
+   * @param array $message
+   *   Compose details about international affiliate transaction to send
+   *   to Mailchimp.
+   */
+  private function produceMailchimpAffilate($message) {
+
+    $message['affiliate'] = TRUE;
+    $this->sendEmailServiceMessage($message);
+
+    echo 'produceMailchimpAffilate()', PHP_EOL;
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceMailchimpAffilate');
+    $this->statHat->reportCount(1);
+  }
+
+  /**
+   * Produce international Mailchimp entries.
+   *
+   * @param array $message
+   *   Compose details about international transaction to send to Mailchimp.
+   */
+  private function produceMailchimpInternational($message) {
+
+    $message['affiliate'] = FALSE;
+    $this->sendEmailServiceMessage($message);
+
+    echo 'produceMailchimpInternational()', PHP_EOL;
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceMailchimpInternational');
+    $this->statHat->reportCount(1);
+  }
+
+  /**
+   * Produce emailService message.
+   *
+   * @param array $message
+   *   Details about the transaction that has triggered producing Message
+   *   Broker message.
+   */
+  private function sendEmailServiceMessage($message) {
+
+    $config = array();
+    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($source, $this->settings);
+    $emailServiceExchange = $mb_config->exchangeSettings('topicEmailService');
+
+    $config['exchange'] = array(
+      'name' => $emailServiceExchange->name,
+      'type' => $emailServiceExchange->type,
+      'passive' => $emailServiceExchange->passive,
+      'durable' => $emailServiceExchange->durable,
+      'auto_delete' => $emailServiceExchange->auto_delete,
+    );
+    $config['queue'][] = array(
+      'name' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->name,
+      'passive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->passive,
+      'durable' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->durable,
+      'exclusive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->exclusive,
+      'auto_delete' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->auto_delete,
+      'binding_pattern' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->binding_pattern,
+    );
+    $config['routing_key'] = 'subscribe.mailchimp.cgg';
+
+    $payload = serialize($message);
+
+    $mb = new MessageBroker($this->credentials, $config);
+    $mb->publishMessage($payload);
+    echo 'sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('sendEmailServiceMessage');
+    $this->statHat->reportCount(1);
+  }
 
 }
