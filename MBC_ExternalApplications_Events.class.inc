@@ -49,7 +49,7 @@ class MBC_ExternalApplications_Events
     $message = unserialize($payload->body);
 
     $isAffiliate = FALSE;
-    if (isset($message['country_code']) && $message['country_code'] != 'US') {
+    if (isset($message['country_code'])) {
       $isAffiliate = $this->toolbox->isDSAffiliate($message['country_code']);
     }
 
