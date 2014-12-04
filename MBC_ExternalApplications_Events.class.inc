@@ -101,6 +101,7 @@ class MBC_ExternalApplications_Events
 
     $this->produceMailchimpInternational($message);
 
+    $this->statHat->clearAddedStatNames();
     $this->statHat->addStatName('produceInternationalEvent');
     $this->statHat->reportCount(1);
 
