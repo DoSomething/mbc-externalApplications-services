@@ -32,6 +32,8 @@ $credentials = array(
 );
 $settings = array(
   'stathat_ez_key' => getenv("STATHAT_EZKEY"),
+  'ds_drupal_api_host' => getenv('DS_DRUPAL_API_HOST'),
+  'ds_drupal_api_port' => getenv('DS_DRUPAL_API_PORT'),
 );
 
 $config = array();
