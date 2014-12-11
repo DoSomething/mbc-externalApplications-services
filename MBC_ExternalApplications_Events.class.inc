@@ -60,6 +60,7 @@ class MBC_ExternalApplications_Events
       $this->produceInternationalEvent($message);
     }
     elseif ($message['email'] === NULL && isset($message['mobile'])) {
+      $this->produceUSEvent($message);
       echo 'mobile vote - ' . $message['mobile'] . ': ' . $message['country_code'], PHP_EOL;
     }
     else {
@@ -227,6 +228,54 @@ class MBC_ExternalApplications_Events
 
     $this->statHat->clearAddedStatNames();
     $this->statHat->addStatName('sendEmailServiceMessage');
+    $this->statHat->reportCount(1);
+  }
+
+  /**
+   * Produce domestic (US) based users creation transaction.
+   *
+   * @param array $message
+   *   Details about the transaction for US based signups.
+   */
+  private function produceUSEvent($message) {
+
+    $payload = array(
+      'mobile' => $message['mobile'],
+      'candidate_name' => $message['candidate_name'],
+      'activity' => $message['activity'],
+    );
+
+    $payload = serialize($payload);
+
+    $config = array();
+    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($source, $this->settings);
+    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
+
+    $config['exchange'] = array(
+      'name' => $transactionalExchange->name,
+      'type' => $transactionalExchange->type,
+      'passive' => $transactionalExchange->passive,
+      'durable' => $transactionalExchange->durable,
+      'auto_delete' => $transactionalExchange->auto_delete,
+    );
+    $config['queue'][] = array(
+      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
+      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
+      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
+      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
+      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
+      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
+    );
+    $config['routing_key'] = 'user.registration.cgg';
+
+    $mbMobileCommons = new MessageBroker($this->credentials, $config);
+    $mbMobileCommons->publishMessage($payload);
+
+    echo 'produceUSEvent() - SMS vote message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceUSEvent - mobile vote');
     $this->statHat->reportCount(1);
   }
 
