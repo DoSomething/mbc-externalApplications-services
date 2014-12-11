@@ -243,6 +243,7 @@ class MBC_ExternalApplications_Events
       'mobile' => $message['mobile'],
       'candidate_name' => $message['candidate_name'],
       'activity' => $message['activity'],
+      'mc_opt_in_path_id' => $message['mc_opt_in_path_id']
     );
 
     $payload = serialize($payload);
