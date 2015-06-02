@@ -1,8 +1,5 @@
 # Ignore configuration files that may contain sensitive information.
-mb-config.inc
-mb-secure-config.inc
-mb-config.json
-/messagebroker-config/
+messagebroker-config
 
 # Ignor composer working files
 composer.lock
