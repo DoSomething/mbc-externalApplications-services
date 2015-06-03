@@ -1,6 +1,9 @@
 <?php
 
+namespace DoSomething\MBC_ExternalApplications;
+
 use DoSomething\MB_Toolbox\MB_Toolbox;
+use DoSomething\MB_Toolbox\MB_Configuration;
 use DoSomething\StatHat\Client as StatHat;
 
 /**
@@ -65,6 +68,7 @@ class MBC_ExternalApplications_User
    *   The contents of the message in a serial format
    */
   public function consumeQueue($payload) {
+
     echo '------- mbc-externalApplication-users->consumeQueue() START: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
     $message = unserialize($payload->body);
@@ -100,7 +104,7 @@ class MBC_ExternalApplications_User
   private function produceUSUser($message) {
 
     $config = array();
-    $settingsSource = __DIR__ . '/messagebroker-config/mb_config.json';
+    $settingsSource = __DIR__ . '/../messagebroker-config/mb_config.json';
     $mb_config = new MB_Configuration($settingsSource, $this->settings);
     $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
