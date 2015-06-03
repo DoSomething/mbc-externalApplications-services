@@ -1,4 +1,8 @@
 <?php
+/**
+ * MBC_ExternalApplications_Events: Class to perform user event activities
+ * submitted by external applications.
+ */
 
 namespace DoSomething\MBC_ExternalApplications;
 
@@ -108,9 +112,7 @@ class MBC_ExternalApplications_Events
 
     $this->produceMailchimpInternational($message);
 
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceInternationalEvent');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalEvent', 1);
 
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'non-affiliate-voting-confirmation';
@@ -128,8 +130,8 @@ class MBC_ExternalApplications_Events
   private function produceTransactionalEmail($message) {
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($source, $this->settings);
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
     $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
     $config['exchange'] = array(
@@ -151,13 +153,11 @@ class MBC_ExternalApplications_Events
 
     $payload = serialize($message);
 
-    $mb = new MessageBroker($this->credentials, $config);
+    $mb = new \MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
     echo 'produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceTransactionalEmail');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceTransactionalEmail', 1);
   }
 
   /**
@@ -173,9 +173,7 @@ class MBC_ExternalApplications_Events
     $this->sendEmailServiceMessage($message);
 
     echo 'produceMailchimpAffilate()', PHP_EOL;
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceMailchimpAffilate');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceMailchimpAffilate', 1);
   }
 
   /**
@@ -190,9 +188,7 @@ class MBC_ExternalApplications_Events
     $this->sendEmailServiceMessage($message);
 
     echo 'produceMailchimpInternational()', PHP_EOL;
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceMailchimpInternational');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceMailchimpInternational', 1);
   }
 
   /**
@@ -205,7 +201,7 @@ class MBC_ExternalApplications_Events
   private function sendEmailServiceMessage($message) {
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $source = __DIR__ . '/../messagebroker-config/mb_config.json';
     $mb_config = new MB_Configuration($source, $this->settings);
     $emailServiceExchange = $mb_config->exchangeSettings('topicEmailService');
 
@@ -232,9 +228,7 @@ class MBC_ExternalApplications_Events
     $mb->publishMessage($payload);
     echo 'sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('sendEmailServiceMessage');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: sendEmailServiceMessage', 1);
   }
 
   /**
@@ -255,7 +249,7 @@ class MBC_ExternalApplications_Events
     $payload = serialize($payload);
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $source = __DIR__ . '/../messagebroker-config/mb_config.json';
     $mb_config = new MB_Configuration($source, $this->settings);
     $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
@@ -280,10 +274,7 @@ class MBC_ExternalApplications_Events
     $mbMobileCommons->publishMessage($payload);
 
     echo 'produceUSEvent() - SMS vote message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
-
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceUSEvent - mobile vote');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceUSEvent - mobile vote', 1);
   }
 
 }
