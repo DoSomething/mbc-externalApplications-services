@@ -1,6 +1,10 @@
 <?php
+
+namespace DoSomething\MBC_ExternalApplications;
+
 use DoSomething\MB_Toolbox\MB_Toolbox;
-use DoSomething\MBStatTracker\StatHat;
+use DoSomething\MB_Toolbox\MB_Configuration;
+use DoSomething\StatHat\Client as StatHat;
 
 /**
  * MBC_UserEvent class - functionality related to the Message Broker
@@ -35,8 +39,10 @@ class MBC_ExternalApplications_Events
     $this->settings = $settings;
 
     $this->toolbox = new MB_Toolbox($settings);
-    $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
-    $this->statHat->setIsProduction(TRUE);
+    $this->statHat = new StatHat([
+      'ez_key' => $settings['stathat_ez_key'],
+      'debug' => $settings['stathat_disable_tracking']
+    ]);
   }
 
   /* 
@@ -44,7 +50,7 @@ class MBC_ExternalApplications_Events
    */
   public function consumeQueue($payload) {
 
-    echo '------- mbc-externalApplication-events->consumeQueue() START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo '------- mbc-externalApplication-events->consumeQueue() START: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
     $message = unserialize($payload->body);
 
@@ -67,7 +73,7 @@ class MBC_ExternalApplications_Events
       echo 'ERROR consumeQueue: email not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
     }
 
-    echo '------- mbc-externalApplication-events->consumeQueue() END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo '------- mbc-externalApplication-events->consumeQueue() END: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
   }
 
   /**
