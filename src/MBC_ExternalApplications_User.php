@@ -1,4 +1,8 @@
 <?php
+/**
+ * MBC_ExternalApplications_User: Class to perform user registration activities
+ * submitted by external applications.
+ */
 
 namespace DoSomething\MBC_ExternalApplications;
 
