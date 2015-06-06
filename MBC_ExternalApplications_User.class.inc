@@ -1,4 +1,8 @@
 <?php
+/**
+ * MBC_ExternalApplications_User: Class to perform user registration activities
+ * submitted by external applications.
+ */
 
 use DoSomething\MB_Toolbox\MB_Toolbox;
 use DoSomething\MBStatTracker\StatHat;

@@ -81,8 +81,7 @@ class MBC_ExternalApplications_Events
 
     $this->produceMailchimpAffilate($message);
 
-    $this->statHat->addStatName('produceInternationalAffiliateEvent');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalAffiliateEvent', 1);
 
     $message['merge_vars']['AFFILIATE_URL'] = $isAffiliate['url'];
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
