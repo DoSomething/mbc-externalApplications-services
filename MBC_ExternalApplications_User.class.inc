@@ -4,11 +4,8 @@
  * submitted by external applications.
  */
 
-namespace DoSomething\MBC_ExternalApplications;
-
 use DoSomething\MB_Toolbox\MB_Toolbox;
-use DoSomething\MB_Toolbox\MB_Configuration;
-use DoSomething\StatHat\Client as StatHat;
+use DoSomething\MBStatTracker\StatHat;
 
 /**
  * MBC_ExternalApplications_User class - functionality related to the Message Broker
@@ -59,10 +56,8 @@ class MBC_ExternalApplications_User
     $this->settings = $settings;
 
     $this->toolbox = new MB_Toolbox($settings);
-    $this->statHat = new StatHat([
-      'ez_key' => $settings['stathat_ez_key'],
-      'debug' => $settings['stathat_disable_tracking']
-    ]);
+    $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-user:');
+    $this->statHat->setIsProduction(TRUE);
   }
 
   /* 
@@ -72,8 +67,7 @@ class MBC_ExternalApplications_User
    *   The contents of the message in a serial format
    */
   public function consumeQueue($payload) {
-
-    echo '------- mbc-externalApplication-users->consumeQueue() START: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    echo '------- mbc-externalApplication-users->consumeQueue() START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
     $message = unserialize($payload->body);
 
@@ -96,7 +90,7 @@ class MBC_ExternalApplications_User
       echo 'ERROR consumerQueue: email or mobile not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
     }
 
-    echo '------- mbc-externalApplication-users->consumeQueue() END: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    echo '------- mbc-externalApplication-users->consumeQueue() END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
   }
 
   /**
@@ -108,8 +102,8 @@ class MBC_ExternalApplications_User
   private function produceUSUser($message) {
 
     $config = array();
-    $settingsSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($settingsSource, $this->settings);
+    $source = __DIR__ . '/messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($source, $this->settings);
     $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
     $config['exchange'] = array(
@@ -133,9 +127,11 @@ class MBC_ExternalApplications_User
     $payload = serialize($message);
     $mbMobileCommons->publishMessage($payload);
 
-    echo '- produceUSUser() - SMS message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    echo 'produceUSUser() - SMS message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
-    $this->statHat->ezCount('mbc-externalApplications-user: produceUSUser - mobile', 1);
+    $this->statHat->clearAddedStatNames();
+    $this->statHat->addStatName('produceUSUser - mobile');
+    $this->statHat->reportCount(1);
   }
 
   /**
