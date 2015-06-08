@@ -36,13 +36,6 @@ class MBC_ExternalApplications_Events_AGG
    * @var object
    */
   private $statHat;
-  
-  /**
-   * Payload values submitted via Message Broker from external application.
-   *
-   * @var array
-   */
-  private $payload;
 
   /**
    * Constructor for MBC_UserEvent
@@ -50,11 +43,10 @@ class MBC_ExternalApplications_Events_AGG
    * @param array $settings
    *   Settings of additional services used by the class.
    */
-  public function __construct($credentials, $settings, $payload) {
+  public function __construct($credentials, $settings) {
 
     $this->credentials = $credentials;
     $this->settings = $settings;
-    $this->payload = $payload;
 
     $this->statHat = new StatHat([
       'ez_key' => $settings['stathat_ez_key'],
@@ -68,7 +60,7 @@ class MBC_ExternalApplications_Events_AGG
    * @param array $message
    *   Details about the transaction for US based signups.
    */
-  private function produceUSEvent($message) {
+  public function produceUSEvent($message) {
 
     $payload = array(
       'mobile' => $message['mobile'],
@@ -115,7 +107,7 @@ class MBC_ExternalApplications_Events_AGG
    *   Details about the transaction that has triggered producing international,
    *   non-affiliate Message Broker functionality.
    */
-  private function produceInternationalEvent($message) {
+  public function produceInternationalEvent($message) {
 
     $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalEvent', 1);
 
@@ -166,47 +158,6 @@ class MBC_ExternalApplications_Events_AGG
     echo '- produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
     $this->statHat->ezCount('mbc-externalApplications-events: produceTransactionalEmail', 1);
-  }
-
-
-  /**
-   * Produce emailService message.
-   *
-   * @param array $message
-   *   Details about the transaction that has triggered producing Message
-   *   Broker message.
-   */
-  private function sendEmailServiceMessage($message) {
-
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $emailServiceExchange = $mb_config->exchangeSettings('topicEmailService');
-
-    $config['exchange'] = array(
-      'name' => $emailServiceExchange->name,
-      'type' => $emailServiceExchange->type,
-      'passive' => $emailServiceExchange->passive,
-      'durable' => $emailServiceExchange->durable,
-      'auto_delete' => $emailServiceExchange->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->name,
-      'passive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->passive,
-      'durable' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->durable,
-      'exclusive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->exclusive,
-      'auto_delete' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->auto_delete,
-      'binding_pattern' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->binding_pattern,
-    );
-    $config['routing_key'] = 'subscribe.mailchimp.cgg';
-
-    $payload = serialize($message);
-
-    $mb = new \MessageBroker($this->credentials, $config);
-    $mb->publishMessage($payload);
-
-    echo '- sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
-    $this->statHat->ezCount('mbc-externalApplications-events: sendEmailServiceMessage', 1);
   }
 
 }
