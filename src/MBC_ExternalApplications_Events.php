@@ -1,6 +1,13 @@
 <?php
+/**
+ * MBC_ExternalApplications_Events: Class to perform user event activities
+ * submitted by external applications.
+ */
+namespace DoSomething\MBC_ExternalApplications;
+
 use DoSomething\MB_Toolbox\MB_Toolbox;
-use DoSomething\MBStatTracker\StatHat;
+use DoSomething\MB_Toolbox\MB_Configuration;
+use DoSomething\StatHat\Client as StatHat;
 
 /**
  * MBC_UserEvent class - functionality related to the Message Broker
@@ -35,8 +42,10 @@ class MBC_ExternalApplications_Events
     $this->settings = $settings;
 
     $this->toolbox = new MB_Toolbox($settings);
-    $this->statHat = new StatHat($settings['stathat_ez_key'], 'mbc-externalApplications-events:');
-    $this->statHat->setIsProduction(TRUE);
+    $this->statHat = new StatHat([
+      'ez_key' => $settings['stathat_ez_key'],
+      'debug' => $settings['stathat_disable_tracking']
+    ]);
   }
 
   /* 
@@ -44,7 +53,7 @@ class MBC_ExternalApplications_Events
    */
   public function consumeQueue($payload) {
 
-    echo '------- mbc-externalApplication-events->consumeQueue() START: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo '------- mbc-externalApplication->MBC_ExternalApplications_Events->consumeQueue() START: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
     $message = unserialize($payload->body);
 
@@ -67,7 +76,7 @@ class MBC_ExternalApplications_Events
       echo 'ERROR consumeQueue: email not defined - $message: ' . print_r($message, TRUE), PHP_EOL;
     }
 
-    echo '------- mbc-externalApplication-events->consumeQueue() END: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo '------- mbc-externalApplication->MBC_ExternalApplications_Events->consumeQueue() END: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
   }
 
   /**
@@ -100,10 +109,7 @@ class MBC_ExternalApplications_Events
   private function produceInternationalEvent($message) {
 
     $this->produceMailchimpInternational($message);
-
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceInternationalEvent');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalEvent', 1);
 
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $message['email_template'] = 'non-affiliate-voting-confirmation';
@@ -121,8 +127,8 @@ class MBC_ExternalApplications_Events
   private function produceTransactionalEmail($message) {
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($source, $this->settings);
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
     $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
     $config['exchange'] = array(
@@ -144,13 +150,11 @@ class MBC_ExternalApplications_Events
 
     $payload = serialize($message);
 
-    $mb = new MessageBroker($this->credentials, $config);
+    $mb = new \MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
-    echo 'produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
+    echo '- produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceTransactionalEmail');
-    $this->statHat->reportCount(1);
+    $this->statHat->ezCount('mbc-externalApplications-events: produceTransactionalEmail', 1);
   }
 
   /**
@@ -165,10 +169,8 @@ class MBC_ExternalApplications_Events
     $message['affiliate'] = TRUE;
     $this->sendEmailServiceMessage($message);
 
-    echo 'produceMailchimpAffilate()', PHP_EOL;
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceMailchimpAffilate');
-    $this->statHat->reportCount(1);
+    echo '- produceMailchimpAffilate()', PHP_EOL;
+    $this->statHat->ezCount('mbc-externalApplications-events: produceMailchimpAffilate', 1);
   }
 
   /**
@@ -182,10 +184,8 @@ class MBC_ExternalApplications_Events
     $message['affiliate'] = FALSE;
     $this->sendEmailServiceMessage($message);
 
-    echo 'produceMailchimpInternational()', PHP_EOL;
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceMailchimpInternational');
-    $this->statHat->reportCount(1);
+    echo '- produceMailchimpInternational()', PHP_EOL;
+    $this->statHat->ezCount('mbc-externalApplications-events: produceMailchimpInternational', 1);
   }
 
   /**
@@ -198,8 +198,8 @@ class MBC_ExternalApplications_Events
   private function sendEmailServiceMessage($message) {
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($source, $this->settings);
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
     $emailServiceExchange = $mb_config->exchangeSettings('topicEmailService');
 
     $config['exchange'] = array(
@@ -221,13 +221,11 @@ class MBC_ExternalApplications_Events
 
     $payload = serialize($message);
 
-    $mb = new MessageBroker($this->credentials, $config);
+    $mb = new \MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
-    echo 'sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
 
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('sendEmailServiceMessage');
-    $this->statHat->reportCount(1);
+    echo '- sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    $this->statHat->ezCount('mbc-externalApplications-events: sendEmailServiceMessage', 1);
   }
 
   /**
@@ -248,8 +246,8 @@ class MBC_ExternalApplications_Events
     $payload = serialize($payload);
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($source, $this->settings);
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
     $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
 
     $config['exchange'] = array(
@@ -269,14 +267,11 @@ class MBC_ExternalApplications_Events
     );
     $config['routing_key'] = 'user.registration.cgg';
 
-    $mbMobileCommons = new MessageBroker($this->credentials, $config);
+    $mbMobileCommons = new \MessageBroker($this->credentials, $config);
     $mbMobileCommons->publishMessage($payload);
 
-    echo 'produceUSEvent() - SMS vote message sent to queue: ' . date('D M j G:i:s T Y') . ' -------', PHP_EOL;
-
-    $this->statHat->clearAddedStatNames();
-    $this->statHat->addStatName('produceUSEvent - mobile vote');
-    $this->statHat->reportCount(1);
+    echo '- produceUSEvent() - SMS vote message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    $this->statHat->ezCount('mbc-externalApplications-events: produceUSEvent - mobile vote', 1);
   }
 
 }
