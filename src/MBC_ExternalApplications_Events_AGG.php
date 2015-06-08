@@ -17,18 +17,32 @@ class MBC_ExternalApplications_Events_AGG
 {
 
   /**
-   * Setting from external services - StatHat.
-   *
-   * @var object
-   */
-  private $toolbox;
-
-  /**
    * Setting from external services - Mailchimp.
    *
    * @var array
    */
+  private $settings;
+
+  /**
+   * Collection of secret connection settings.
+   *
+   * @var array
+   */
+  private $credentials;
+
+  /**
+   * Setting from external services - StatHat.
+   *
+   * @var object
+   */
   private $statHat;
+  
+  /**
+   * Payload values submitted via Message Broker from external application.
+   *
+   * @var array
+   */
+  private $payload;
 
   /**
    * Constructor for MBC_UserEvent
@@ -36,12 +50,12 @@ class MBC_ExternalApplications_Events_AGG
    * @param array $settings
    *   Settings of additional services used by the class.
    */
-  public function __construct($credentials, $settings) {
+  public function __construct($credentials, $settings, $payload) {
 
     $this->credentials = $credentials;
     $this->settings = $settings;
+    $this->payload = $payload;
 
-    $this->toolbox = new MB_Toolbox($settings);
     $this->statHat = new StatHat([
       'ez_key' => $settings['stathat_ez_key'],
       'debug' => $settings['stathat_disable_tracking']
@@ -49,23 +63,49 @@ class MBC_ExternalApplications_Events_AGG
   }
 
   /**
-   * Produce international affiliate event (vote).
+   * Produce domestic (US) voyr event transaction.
    *
    * @param array $message
-   *   Details about the transaction that has triggered producing international,
-   *   Message Broker functionality.
+   *   Details about the transaction for US based signups.
    */
-  private function produceInternationalAffilateEvent($message, $isAffiliate) {
+  private function produceUSEvent($message) {
 
-    $this->produceMailchimpAffilate($message);
+    $payload = array(
+      'mobile' => $message['mobile'],
+      'candidate_name' => $message['candidate_name'],
+      'activity' => $message['activity'],
+      'mc_opt_in_path_id' => $message['mc_opt_in_path_id']
+    );
 
-    $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalAffiliateEvent', 1);
+    $payload = serialize($payload);
 
-    $message['merge_vars']['AFFILIATE_URL'] = $isAffiliate['url'];
-    $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
-    $message['email_template'] = 'affiliated-country-voting-confirmation';
-    $this->produceTransactionalEmail($message);
-    echo '- produceInternationalAffilateEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'] . ' - isAffiliate url: ' . $isAffiliate['url'], PHP_EOL;
+    $config = array();
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
+    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
+
+    $config['exchange'] = array(
+      'name' => $transactionalExchange->name,
+      'type' => $transactionalExchange->type,
+      'passive' => $transactionalExchange->passive,
+      'durable' => $transactionalExchange->durable,
+      'auto_delete' => $transactionalExchange->auto_delete,
+    );
+    $config['queue'][] = array(
+      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
+      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
+      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
+      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
+      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
+      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
+    );
+    $config['routing_key'] = 'user.registration.agg';
+
+    $mbMobileCommons = new \MessageBroker($this->credentials, $config);
+    $mbMobileCommons->publishMessage($payload);
+
+    echo '- produceUSEvent() - SMS vote message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    $this->statHat->ezCount('mbc-externalApplications-events: AGG: produceUSEvent - mobile vote', 1);
   }
 
   /**
@@ -77,11 +117,13 @@ class MBC_ExternalApplications_Events_AGG
    */
   private function produceInternationalEvent($message) {
 
-    $this->produceMailchimpInternational($message);
     $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalEvent', 1);
 
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
-    $message['email_template'] = 'non-affiliate-voting-confirmation';
+    $message['email_template'] = 'agg2015-voting-confirmation-global';
+
+    // agg2015-voting-confirmation-global-non-affiliates
+
     $this->produceTransactionalEmail($message);
     echo '- produceInternationalEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'], PHP_EOL;
   }
@@ -126,36 +168,6 @@ class MBC_ExternalApplications_Events_AGG
     $this->statHat->ezCount('mbc-externalApplications-events: produceTransactionalEmail', 1);
   }
 
-  /**
-   * Produce affiliate Mailchimp entries.
-   *
-   * @param array $message
-   *   Compose details about international affiliate transaction to send
-   *   to Mailchimp.
-   */
-  private function produceMailchimpAffilate($message) {
-
-    $message['affiliate'] = TRUE;
-    $this->sendEmailServiceMessage($message);
-
-    echo '- produceMailchimpAffilate()', PHP_EOL;
-    $this->statHat->ezCount('mbc-externalApplications-events: produceMailchimpAffilate', 1);
-  }
-
-  /**
-   * Produce international Mailchimp entries.
-   *
-   * @param array $message
-   *   Compose details about international transaction to send to Mailchimp.
-   */
-  private function produceMailchimpInternational($message) {
-
-    $message['affiliate'] = FALSE;
-    $this->sendEmailServiceMessage($message);
-
-    echo '- produceMailchimpInternational()', PHP_EOL;
-    $this->statHat->ezCount('mbc-externalApplications-events: produceMailchimpInternational', 1);
-  }
 
   /**
    * Produce emailService message.
@@ -195,52 +207,6 @@ class MBC_ExternalApplications_Events_AGG
 
     echo '- sendEmailServiceMessage() - email: ' . $message['email'] . ' message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
     $this->statHat->ezCount('mbc-externalApplications-events: sendEmailServiceMessage', 1);
-  }
-
-  /**
-   * Produce domestic (US) based users creation transaction.
-   *
-   * @param array $message
-   *   Details about the transaction for US based signups.
-   */
-  private function produceUSEvent($message) {
-
-    $payload = array(
-      'mobile' => $message['mobile'],
-      'candidate_name' => $message['candidate_name'],
-      'activity' => $message['activity'],
-      'mc_opt_in_path_id' => $message['mc_opt_in_path_id']
-    );
-
-    $payload = serialize($payload);
-
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
-
-    $config['exchange'] = array(
-      'name' => $transactionalExchange->name,
-      'type' => $transactionalExchange->type,
-      'passive' => $transactionalExchange->passive,
-      'durable' => $transactionalExchange->durable,
-      'auto_delete' => $transactionalExchange->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
-      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
-      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
-      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
-      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
-      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
-    );
-    $config['routing_key'] = 'user.registration.cgg';
-
-    $mbMobileCommons = new \MessageBroker($this->credentials, $config);
-    $mbMobileCommons->publishMessage($payload);
-
-    echo '- produceUSEvent() - SMS vote message sent to queue: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
-    $this->statHat->ezCount('mbc-externalApplications-events: produceUSEvent - mobile vote', 1);
   }
 
 }
