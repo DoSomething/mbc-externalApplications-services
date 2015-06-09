@@ -28,11 +28,8 @@
     }
   },
   "scripts": {
-    "pre-package-install": [
-      "./bin/install.sh"
-    ],
     "post-package-install": [
-      "./vendor/bin/phpunit"
+      "./bin/install.sh"
     ],
     "pre-package-update": [
       "git checkout master",
