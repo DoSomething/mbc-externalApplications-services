@@ -6,6 +6,7 @@
 namespace DoSomething\MBC_ExternalApplications;
 
 use DoSomething\MB_Toolbox\MB_Toolbox;
+use DoSomething\MB_Toolbox\MB_Configuration;
 use DoSomething\StatHat\Client as StatHat;
 use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_CGG;
 use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_AGG;
@@ -135,8 +136,8 @@ class MBC_ExternalApplications_Events
   private function logEvent($message) {
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($source, $settings);
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
     $loggingGateway = $mb_config->exchangeSettings('directLoggingGateway');
 
     $config['exchange'] = array(
@@ -147,26 +148,30 @@ class MBC_ExternalApplications_Events
       'auto_delete' => $loggingGateway->auto_delete,
     );
     $config['queue'][] = array(
-      'name' => $loggingGateway->queues->userImportExistingLoggingQueue->name,
-      'passive' => $loggingGateway->queues->userImportExistingLoggingQueue->passive,
-      'durable' =>  $loggingGateway->queues->userImportExistingLoggingQueue->durable,
-      'exclusive' =>  $loggingGateway->queues->userImportExistingLoggingQueue->exclusive,
-      'auto_delete' =>  $loggingGateway->queues->userImportExistingLoggingQueue->auto_delete,
-      'bindingKey' => $loggingGateway->queues->userImportExistingLoggingQueue->binding_key,
+      'name' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->name,
+      'passive' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->passive,
+      'durable' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->durable,
+      'exclusive' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->exclusive,
+      'auto_delete' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->auto_delete,
+      'bindingKey' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->binding_key,
     );
-    $config['routing_key'] = $loggingGateway->queues->userImportExistingLoggingQueue->routing_key;
+    $config['routingKey'] = $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->routing_key;
 
-    $payload['activity_timestamp'] = $message['activity_timestamp'];
-    $payload['application_id'] = $message['application_id'];
-    $payload[''] = '';
-    $payload = $message;
+    $payload = array(
+      'email' => $message['email'],
+      'source' => $message['application_id'],
+      'activity' => $message['activity'],
+      'activity_date' => date('c'),
+      'activity_timestamp' => time(),
+      'activity_details' => $message,
+    );
     $payload = serialize($payload);
 
     $mb = new \MessageBroker($this->credentials, $config);
     $mb->publishMessage($payload);
-    echo '- produceTransactionalEmail() - email: ' . $message['email'] . ' message sent to consumer: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
+    echo '- logEvent: '   . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
-    $this->statHat->ezCount('mbc-externalApplications-events: produceTransactionalEmail', 1);
+    $this->statHat->ezCount('mbc-externalApplications-events: logEvent', 1);
 
   }
 
