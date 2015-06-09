@@ -38,6 +38,13 @@ class MBC_ExternalApplications_Events_AGG
   private $statHat;
 
   /**
+   * Setting from external services - StatHat.
+   *
+   * @var object
+   */
+  private $toolbox;
+
+  /**
    * Constructor for MBC_UserEvent
    *
    * @param array $settings
@@ -48,6 +55,7 @@ class MBC_ExternalApplications_Events_AGG
     $this->credentials = $credentials;
     $this->settings = $settings;
 
+    $this->toolbox = new MB_Toolbox($settings);
     $this->statHat = new StatHat([
       'ez_key' => $settings['stathat_ez_key'],
       'debug' => $settings['stathat_disable_tracking']
@@ -109,15 +117,11 @@ class MBC_ExternalApplications_Events_AGG
    */
   public function produceInternationalEvent($message) {
 
-    $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalEvent', 1);
-
     $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
-    $message['email_template'] = 'agg2015-voting-confirmation-global';
-
-    // agg2015-voting-confirmation-global-non-affiliates
-
     $this->produceTransactionalEmail($message);
+
     echo '- produceInternationalEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'], PHP_EOL;
+    $this->statHat->ezCount('mbc-externalApplications-events: produceInternationalEvent', 1);
   }
 
   /**
@@ -141,14 +145,16 @@ class MBC_ExternalApplications_Events_AGG
       'durable' => $transactionalExchange->durable,
       'auto_delete' => $transactionalExchange->auto_delete,
     );
-    $config['queue'][] = array(
-      'name' => $transactionalExchange->queues->transactionalQueue->name,
-      'passive' => $transactionalExchange->queues->transactionalQueue->passive,
-      'durable' => $transactionalExchange->queues->transactionalQueue->durable,
-      'exclusive' => $transactionalExchange->queues->transactionalQueue->exclusive,
-      'auto_delete' => $transactionalExchange->queues->transactionalQueue->auto_delete,
-      'binding_pattern' => $transactionalExchange->queues->transactionalQueue->binding_pattern,
-    );
+    foreach($transactionalExchange->queues->transactionalQueue->binding_patterns as $bindingPattern) {
+      $config['queue'][] = array(
+        'name' => $transactionalExchange->queues->transactionalQueue->name,
+        'passive' => $transactionalExchange->queues->transactionalQueue->passive,
+        'durable' => $transactionalExchange->queues->transactionalQueue->durable,
+        'exclusive' => $transactionalExchange->queues->transactionalQueue->exclusive,
+        'auto_delete' => $transactionalExchange->queues->transactionalQueue->auto_delete,
+        'binding_pattern' => $bindingPattern,
+      );
+    }
     $config['routing_key'] = 'vote.cgg.transactional';
 
     $payload = serialize($message);
