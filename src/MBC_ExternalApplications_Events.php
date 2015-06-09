@@ -6,6 +6,7 @@
 namespace DoSomething\MBC_ExternalApplications;
 
 use DoSomething\MB_Toolbox\MB_Toolbox;
+use DoSomething\MB_Toolbox\MB_Configuration;
 use DoSomething\StatHat\Client as StatHat;
 use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_CGG;
 use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_AGG;
@@ -135,8 +136,8 @@ class MBC_ExternalApplications_Events
   private function logEvent($message) {
 
     $config = array();
-    $source = __DIR__ . '/messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($source, $settings);
+    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
+    $mb_config = new MB_Configuration($configSource, $this->settings);
     $loggingGateway = $mb_config->exchangeSettings('directLoggingGateway');
 
     $config['exchange'] = array(
@@ -154,7 +155,7 @@ class MBC_ExternalApplications_Events
       'auto_delete' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->auto_delete,
       'bindingKey' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->binding_key,
     );
-    $config['routing_key'] = $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->routing_key;
+    $config['routingKey'] = $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->routing_key;
 
     $payload = array(
       'email' => $message['email'],
