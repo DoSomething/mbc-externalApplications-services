@@ -19,6 +19,7 @@ use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events;
 // Load configuration settings specific to this application
 require_once __DIR__ . '/mbc-externalApplications-events.config.inc';
 
+
 echo '------- mbc-externalApplications-events START: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
 // Kick off

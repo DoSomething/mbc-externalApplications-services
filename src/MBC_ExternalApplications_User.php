@@ -107,27 +107,9 @@ class MBC_ExternalApplications_User
    */
   private function produceUSUser($message) {
 
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
-
-    $config['exchange'] = array(
-      'name' => $transactionalExchange->name,
-      'type' => $transactionalExchange->type,
-      'passive' => $transactionalExchange->passive,
-      'durable' => $transactionalExchange->durable,
-      'auto_delete' => $transactionalExchange->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
-      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
-      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
-      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
-      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
-      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
-    );
-    $config['routing_key'] = 'user.registration.cgg';
+    $mbConfig = new MB_Configuration($this->settings, CONFIG_PATH . '/mb_config.json');
+    $config = $mbConfig->constructConfig('transactionalExchange', array('mobileCommonsQueue'));
+    $config['routingKey'] = 'user.registration.agg';
 
     $mbMobileCommons = new \MessageBroker($this->credentials, $config);
     $payload = serialize($message);
