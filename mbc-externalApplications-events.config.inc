@@ -1,6 +1,6 @@
 <?php
 /**
- * Message Broker configuration settings for mbp-user-import
+ * Message Broker configuration settings for mbp-user-import events.
  */
  
 use DoSomething\MB_Toolbox\MB_Configuration;
