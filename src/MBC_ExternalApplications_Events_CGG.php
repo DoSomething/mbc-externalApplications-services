@@ -126,27 +126,9 @@ class MBC_ExternalApplications_Events_CGG
    */
   private function produceTransactionalEmail($message) {
 
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
-
-    $config['exchange'] = array(
-      'name' => $transactionalExchange->name,
-      'type' => $transactionalExchange->type,
-      'passive' => $transactionalExchange->passive,
-      'durable' => $transactionalExchange->durable,
-      'auto_delete' => $transactionalExchange->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $transactionalExchange->queues->transactionalQueue->name,
-      'passive' => $transactionalExchange->queues->transactionalQueue->passive,
-      'durable' => $transactionalExchange->queues->transactionalQueue->durable,
-      'exclusive' => $transactionalExchange->queues->transactionalQueue->exclusive,
-      'auto_delete' => $transactionalExchange->queues->transactionalQueue->auto_delete,
-      'binding_pattern' => $transactionalExchange->queues->transactionalQueue->binding_pattern,
-    );
-    $config['routing_key'] = 'vote.cgg.transactional';
+    $mbConfig = new MB_Configuration($this->settings, CONFIG_PATH . '/mb_config.json');
+    $config = $mbConfig->constructConfig('transactionalExchange', array('transactionalQueue'));
+    $config['routingKey'] = 'vote.cgg.transactional';
 
     $payload = serialize($message);
 
@@ -197,27 +179,9 @@ class MBC_ExternalApplications_Events_CGG
    */
   private function sendEmailServiceMessage($message) {
 
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $emailServiceExchange = $mb_config->exchangeSettings('topicEmailService');
-
-    $config['exchange'] = array(
-      'name' => $emailServiceExchange->name,
-      'type' => $emailServiceExchange->type,
-      'passive' => $emailServiceExchange->passive,
-      'durable' => $emailServiceExchange->durable,
-      'auto_delete' => $emailServiceExchange->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->name,
-      'passive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->passive,
-      'durable' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->durable,
-      'exclusive' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->exclusive,
-      'auto_delete' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->auto_delete,
-      'binding_pattern' => $emailServiceExchange->queues->mailchimpSubscriptionQueue->binding_pattern,
-    );
-    $config['routing_key'] = 'subscribe.mailchimp.cgg';
+    $mbConfig = new MB_Configuration($this->settings, CONFIG_PATH . '/mb_config.json');
+    $config = $mbConfig->constructConfig('topicEmailService', array('mailchimpSubscriptionQueue'));
+    $config['routingKey'] = 'subscribe.mailchimp.cgg';
 
     $payload = serialize($message);
 
@@ -242,30 +206,11 @@ class MBC_ExternalApplications_Events_CGG
       'activity' => $message['activity'],
       'mc_opt_in_path_id' => $message['mc_opt_in_path_id']
     );
-
     $payload = serialize($payload);
 
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
-
-    $config['exchange'] = array(
-      'name' => $transactionalExchange->name,
-      'type' => $transactionalExchange->type,
-      'passive' => $transactionalExchange->passive,
-      'durable' => $transactionalExchange->durable,
-      'auto_delete' => $transactionalExchange->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $transactionalExchange->queues->mobileCommonsQueue->name,
-      'passive' => $transactionalExchange->queues->mobileCommonsQueue->passive,
-      'durable' => $transactionalExchange->queues->mobileCommonsQueue->durable,
-      'exclusive' => $transactionalExchange->queues->mobileCommonsQueue->exclusive,
-      'auto_delete' => $transactionalExchange->queues->mobileCommonsQueue->auto_delete,
-      'binding_pattern' => $transactionalExchange->queues->mobileCommonsQueue->binding_pattern,
-    );
-    $config['routing_key'] = 'user.registration.cgg';
+    $mbConfig = new MB_Configuration($this->settings, CONFIG_PATH . '/mb_config.json');
+    $config = $mbConfig->constructConfig('transactionalExchange', array('mobileCommonsQueue'));
+    $config['routingKey'] = 'user.registration.cgg';
 
     $mbMobileCommons = new \MessageBroker($this->credentials, $config);
     $mbMobileCommons->publishMessage($payload);
