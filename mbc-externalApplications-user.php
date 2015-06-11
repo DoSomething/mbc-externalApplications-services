@@ -12,7 +12,8 @@
  *   - Mandrill transactional signup email message if a Drupal user is created
  */
 
- date_default_timezone_set('America/New_York');
+date_default_timezone_set('America/New_York');
+define('CONFIG_PATH',  __DIR__ . '/messagebroker-config');
 
 // Load up the Composer autoload magic
 require_once __DIR__ . '/vendor/autoload.php';
