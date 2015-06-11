@@ -133,28 +133,8 @@ class MBC_ExternalApplications_Events_AGG
    */
   private function produceTransactionalEmail($message) {
 
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $transactionalExchange = $mb_config->exchangeSettings('transactionalExchange');
-
-    $config['exchange'] = array(
-      'name' => $transactionalExchange->name,
-      'type' => $transactionalExchange->type,
-      'passive' => $transactionalExchange->passive,
-      'durable' => $transactionalExchange->durable,
-      'auto_delete' => $transactionalExchange->auto_delete,
-    );
-    foreach($transactionalExchange->queues->transactionalQueue->binding_patterns as $bindingPattern) {
-      $config['queue'][] = array(
-        'name' => $transactionalExchange->queues->transactionalQueue->name,
-        'passive' => $transactionalExchange->queues->transactionalQueue->passive,
-        'durable' => $transactionalExchange->queues->transactionalQueue->durable,
-        'exclusive' => $transactionalExchange->queues->transactionalQueue->exclusive,
-        'auto_delete' => $transactionalExchange->queues->transactionalQueue->auto_delete,
-        'binding_pattern' => $bindingPattern,
-      );
-    }
+    $mbConfig = new MB_Configuration($this->settings, CONFIG_PATH . '/mb_config.json');
+    $config = $mbConfig->constructConfig('transactionalExchange', array('transactionalQueue'));
     $config['routing_key'] = 'vote.cgg.transactional';
 
     $payload = serialize($message);
