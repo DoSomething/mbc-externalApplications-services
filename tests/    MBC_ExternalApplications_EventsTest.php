@@ -13,13 +13,9 @@ class MBC_ExternalApplications_EventsTest extends PHPUnit_Framework_TestCase {
   public function setUp(){ }
   public function tearDown(){ }
  
-  public function testFindNextTargetFile()
+  public function testConsumeQueue()
   {
-
-      $this->assertTrue(TRUE);
-      
-    }
-
+    $this->assertTrue(TRUE);
   }
  
 }

@@ -28,7 +28,7 @@
     }
   },
   "scripts": {
-    "post-package-install": [
+    "pre-install-cmd": [
       "./bin/install.sh"
     ],
     "pre-package-update": [
@@ -36,7 +36,7 @@
       "git pull"
     ],
     "post-package-update": [
-      "./vendor/bin/phpunit"
+      "./vendor/bin/phpunit tests"
     ],
     "post-package-uninstall": [
       "./bin/uninstall.sh"
