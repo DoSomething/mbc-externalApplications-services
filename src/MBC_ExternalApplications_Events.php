@@ -135,27 +135,9 @@ class MBC_ExternalApplications_Events
    */
   private function logEvent($message) {
 
-    $config = array();
-    $configSource = __DIR__ . '/../messagebroker-config/mb_config.json';
-    $mb_config = new MB_Configuration($configSource, $this->settings);
-    $loggingGateway = $mb_config->exchangeSettings('directLoggingGateway');
-
-    $config['exchange'] = array(
-      'name' => $loggingGateway->name,
-      'type' => $loggingGateway->type,
-      'passive' => $loggingGateway->passive,
-      'durable' => $loggingGateway->durable,
-      'auto_delete' => $loggingGateway->auto_delete,
-    );
-    $config['queue'][] = array(
-      'name' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->name,
-      'passive' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->passive,
-      'durable' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->durable,
-      'exclusive' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->exclusive,
-      'auto_delete' =>  $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->auto_delete,
-      'bindingKey' => $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->binding_key,
-    );
-    $config['routingKey'] = $loggingGateway->queues->externalAppplicationUserEventLoggingQueue->routing_key;
+    $mbConfig = new MB_Configuration($this->settings, CONFIG_PATH . '/mb_config.json');
+    $config = $mbConfig->constructConfig('directLoggingGateway', array('loggingGatewayQueue'));
+    $config['routingKey'] = 'loggingGateway';
 
     $payload = array(
       'email' => $message['email'],
