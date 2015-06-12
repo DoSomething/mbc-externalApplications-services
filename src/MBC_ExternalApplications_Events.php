@@ -140,6 +140,7 @@ class MBC_ExternalApplications_Events
     $config['routingKey'] = 'loggingGateway';
 
     $payload = array(
+      'log-type' => 'vote',
       'email' => $message['email'],
       'source' => $message['application_id'],
       'activity' => $message['activity'],
