@@ -71,9 +71,11 @@ class MBC_ExternalApplications_Events_AGG
   public function produceUSEvent($message) {
 
     $payload = array(
+      'application_id' => $message['application_id'],
+      'source' => $message['application_id'],
       'mobile' => $message['mobile'],
       'first_name' => '',
-      'birthdate_timestamp' => $message['candidate_name'],
+      'birthdate_timestamp' => $message['birthdate_timestamp'],
       'candidate_name' => $message['candidate_name'],
       'candidate_gender' => $message['candidate_gender'],
       'activity' => $message['activity'],
