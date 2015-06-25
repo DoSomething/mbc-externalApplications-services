@@ -103,7 +103,6 @@ class MBC_ExternalApplications_Events_AGG
    */
   public function produceInternationalEvent($message) {
 
-    $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
     $this->produceTransactionalEmail($message);
 
     echo '- produceInternationalEvent - email: ' . $message['email'] . ' country_code: ' . $message['country_code'], PHP_EOL;

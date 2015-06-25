@@ -107,6 +107,7 @@ class MBC_ExternalApplications_Events
       case 'AGG':
 
         $mbcExternalApplicationsEvents_AGG = new MBC_ExternalApplications_Events_AGG($this->credentials, $this->settings);
+        $message['merge_vars']['MEMBER_COUNT'] = $this->toolbox->getDSMemberCount();
 
         if ($message['country_code'] == 'US' && isset($message['mobile'])) {
           $mbcExternalApplicationsEvents_AGG->produceUSEvent($message);
