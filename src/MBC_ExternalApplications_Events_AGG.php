@@ -74,7 +74,7 @@ class MBC_ExternalApplications_Events_AGG
       'application_id' => $message['application_id'],
       'source' => $message['application_id'],
       'mobile' => $message['mobile'],
-      'first_name' => '',
+      'first_name' => $message['first_name'],
       'birthdate_timestamp' => $message['birthdate_timestamp'],
       'candidate_name' => $message['candidate_name'],
       'candidate_id' => $message['mobile_tags'][1],
