@@ -77,6 +77,7 @@ class MBC_ExternalApplications_Events_AGG
       'first_name' => '',
       'birthdate_timestamp' => $message['birthdate_timestamp'],
       'candidate_name' => $message['candidate_name'],
+      'candidate_id' => $message['mobile_tags'][1],
       'candidate_gender' => $message['mobile_tags'][2],
       'activity' => $message['activity'],
       'mc_opt_in_path_id' => $message['mc_opt_in_path_id']
