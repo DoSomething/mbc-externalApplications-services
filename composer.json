@@ -1,7 +1,7 @@
 {
   "name": "mbc-externalApplications-services",
   "type": "project",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "A consummer app for the Message Broker system that precesses messages from external applications. The routing key and payload values of the message will trigger various systems within the Message Broker system as defined by the source application.",
   "keywords": ["message broker"],
   "homepage": "https://github.com/DoSomething/mbc-externalApplications-services",
@@ -16,7 +16,7 @@
   "require": {
     "php": ">= 5.3.0",
     "DoSomething/messagebroker-phplib": "0.2.*",
-    "dosomething/mb-toolbox": "0.5.*",
+    "dosomething/mb-toolbox": "0.8.*",
     "dosomething/stathat": "1.*"
   },
   "require-dev": {
