@@ -26,6 +26,6 @@ require_once __DIR__ . '/mbc-externalApplications-events.config.inc';
 echo '------- mbc-externalApplications-events START: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
 
 $mb = $mbConfig->getProperty('messageBroker');
-$mb->consumeMessage(array(new MBC_ExternalApplications_Events_Consumer(), 'externalApplicationEventQueue'), QOS_SIZE);
+$mb->consumeMessage(array(new MBC_ExternalApplications_Events_Consumer(), 'consumeExternalApplicationEventQueue'), QOS_SIZE);
 
 echo '------- mbc-externalApplications-events END: ' . date('j D M Y G:i:s T') . ' -------', PHP_EOL;
