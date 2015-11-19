@@ -7,9 +7,8 @@ namespace DoSomething\MBC_ExternalApplications;
 
 use DoSomething\StatHat\Client as StatHat;
 use DoSomething\MB_Toolbox\MB_Toolbox_BaseConsumer;
+use DoSomething\MB_Toolbox\MB_Configuration;
 use \Exception;
-use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_CGG;
-use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_AGG;
 
 /**
  * MBC_ExternalApplications_Events_Consumer class - functionality related to the Message Broker
@@ -17,13 +16,18 @@ use DoSomething\MBC_ExternalApplications\MBC_ExternalApplications_Events_AGG;
  */
 class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
 {
-  
+
   /**
-   * Message Broker Toolbox - collection of utility methods used by many of the
-   * Message Broker producer and consumer applications.
-   * @var object $mbToolbox
+   * Singleton instance of MB_Configuration application settings and service objects
+   * @var object $mbConfig
    */
-  protected $mbToolbox;
+  protected $mbConfig;
+
+  /**
+   * Message Broker connection to RabbitMQ
+   * @var object $messageBrokerService
+   */
+  protected $messageBrokerService;
 
   /**
    * Compiled values for generation of message to send request to email and SMS services
@@ -32,12 +36,13 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
   protected $submission;
   
     /**
-   * Extend the base constructor to include loading the Mandrill object.
+   * Extend the base consumer class.
    */
   public function __construct() {
 
     parent::__construct();
-    $this->mbToolbox = $this->mbConfig->getProperty('mbToolbox');
+    $this->mbConfig = MB_Configuration::getInstance();
+    $this->messageBrokerService = $this->mbConfig->getProperty('messageBrokerServices');
   }
 
   /* 
@@ -140,6 +145,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     $this->submission['email_template'] = $message['email_template'];
     $this->submission['mailchimp_list_id'] = $message['mailchimp_list_id'];
     $this->submission['application_id'] = $message['application_id'];
+    $this->submission['source'] = $message['application_id'];
 
     // Optionals
     // Email
@@ -152,6 +158,9 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     }
     if (isset($message['merge_vars']['CANDIDATE_LINK'])) {
       $this->submission['merge_vars']['CANDIDATE_LINK'] = $message['merge_vars']['CANDIDATE_LINK'];
+    }
+    if (isset($message['email_tags'])) {
+      $this->submission['email_tags'] = $message['email_tags'];
     }
     
     // Mobile
@@ -211,12 +220,10 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     $message = serialize($this->submission);
 
     // Email transactional
-    $this->messageBroker->publish($message, 'ccg.vote.transactional');
+    $this->messageBrokerService->publish($message, 'ccg.vote.transactional');
 
     // Email and SMS services
-    $this->messageBroker->publish($message, 'user.registration.ccg');
-
-    $this->messageBroker->sendAck($this->message['payload']);
+    $this->messageBrokerService->publish($message, 'user.registration.ccg');
   }
 
   /*
