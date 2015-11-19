@@ -11,6 +11,7 @@
  */
  
 use DoSomething\MB_Toolbox\MB_Configuration;
+use DoSomething\MB_Toolbox\MB_Toolbox;
 use DoSomething\MB_Toolbox\MB_RabbitMQManagementAPI;
 use DoSomething\StatHat\Client as StatHat;
 
@@ -47,6 +48,8 @@ $mbConfig->setProperty('messageBroker', new MessageBroker($rabbitCredentials, $m
 // Connection to service (MailChimp, Mobile Commons and mb-user-api related queues)
 $mbRabbitConfig = $mbConfig->constructRabbitConfig('transactionalExchange', array('transactionalQueue', 'mobileCommonsQueue', 'userAPIRegistrationQueue', 'userRegistrationQueue'));
 $mbConfig->setProperty('messageBrokerServices', new MessageBroker($rabbitCredentials, $mbRabbitConfig));
+
+$mbConfig->setProperty('mbToolbox', new MB_Toolbox());
 
 $mbConfig->setProperty('mbRabbitMQManagementAPI', new MB_RabbitMQManagementAPI([
   'domain' => getenv("MB_RABBITMQ_MANAGEMENT_API_HOST"),
