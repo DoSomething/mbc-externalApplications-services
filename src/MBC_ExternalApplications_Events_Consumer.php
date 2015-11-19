@@ -43,6 +43,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     parent::__construct();
     $this->mbConfig = MB_Configuration::getInstance();
     $this->messageBrokerService = $this->mbConfig->getProperty('messageBrokerServices');
+    $this->mbToolbox = $this->mbConfig->getProperty('mbToolbox');
   }
 
   /* 
@@ -159,6 +160,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     if (isset($message['merge_vars']['CANDIDATE_LINK'])) {
       $this->submission['merge_vars']['CANDIDATE_LINK'] = $message['merge_vars']['CANDIDATE_LINK'];
     }
+    $this->submission['merge_vars']['MEMBER_COUNT'] = $this->mbToolbox->getDSMemberCount();
     if (isset($message['email_tags'])) {
       $this->submission['email_tags'] = $message['email_tags'];
     }
