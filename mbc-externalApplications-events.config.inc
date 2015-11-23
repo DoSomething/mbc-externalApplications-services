@@ -51,6 +51,13 @@ $mbConfig->setProperty('messageBrokerServices', new MessageBroker($rabbitCredent
 
 $mbConfig->setProperty('mbToolbox', new MB_Toolbox());
 
+
+$mbConfig->setProperty('ds_drupal_api_config', [
+  'host' => getenv("DS_DRUPAL_API_HOST"),
+  'port' => getenv('DS_DRUPAL_API_PORT'),
+  'username' => getenv("DS_DRUPAL_API_USERNAME"),
+  'password' => getenv('DS_DRUPAL_API_PASSWORD'),
+]);
 $mbConfig->setProperty('mbRabbitMQManagementAPI', new MB_RabbitMQManagementAPI([
   'domain' => getenv("MB_RABBITMQ_MANAGEMENT_API_HOST"),
   'port' => getenv('MB_RABBITMQ_MANAGEMENT_API_PORT'),
