@@ -66,6 +66,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
       try {
         $this->setter($this->message);
         $this->process();
+        $this->messageBroker->sendAck($this->message['payload']);
       }
       catch(Exception $e) {
         echo 'Error sending transactional event messages for: ' . $this->message['email'] . '. Error: ' . $e->getMessage() . PHP_EOL;
@@ -73,8 +74,6 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
         // @todo: Send error submission to userMailchimpStatusQueue for processing by mb-user-api
         // See issue: https://github.com/DoSomething/mbc-transactional-email/issues/26 and
         // https://github.com/DoSomething/mb-toolbox/issues/54
-
-        $this->messageBroker->sendAck($this->message['payload']);
       }
 
     }
