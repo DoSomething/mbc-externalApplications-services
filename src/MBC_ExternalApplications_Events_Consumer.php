@@ -30,6 +30,12 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
   protected $messageBrokerService;
 
   /**
+   * DoSomething membership count
+   * @var string $memberCount
+   */
+  protected $memberCount;
+
+  /**
    * Compiled values for generation of message to send request to email and SMS services
    * @var array $submission
    */
@@ -44,6 +50,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     $this->mbConfig = MB_Configuration::getInstance();
     $this->messageBrokerService = $this->mbConfig->getProperty('messageBrokerServices');
     $this->mbToolbox = $this->mbConfig->getProperty('mbToolbox');
+    $this->memberCount = $this->mbToolbox->getDSMemberCount();
   }
 
   /* 
@@ -159,7 +166,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     if (isset($message['merge_vars']['CANDIDATE_LINK'])) {
       $this->submission['merge_vars']['CANDIDATE_LINK'] = $message['merge_vars']['CANDIDATE_LINK'];
     }
-    $this->submission['merge_vars']['MEMBER_COUNT'] = $this->mbToolbox->getDSMemberCount();
+    $this->submission['merge_vars']['MEMBER_COUNT'] = $this->memberCount;
     if (isset($message['email_tags'])) {
       $this->submission['email_tags'] = $message['email_tags'];
     }
@@ -221,10 +228,10 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     $message = serialize($this->submission);
 
     // Email transactional
-    $this->messageBrokerService->publish($message, 'ccg.vote.transactional');
+    $this->messageBrokerService->publish($message, 'flf.vote.transactional');
 
     // Email and SMS services
-    $this->messageBrokerService->publish($message, 'user.registration.ccg');
+    $this->messageBrokerService->publish($message, 'user.registration.flf');
   }
 
   /*
