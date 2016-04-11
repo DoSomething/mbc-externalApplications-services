@@ -42,11 +42,11 @@ $mbConfig->setProperty('rabbitapi_credentials', [
 ]);
 
 // Create connection to exchange and queue for processing of queue contents.
-$mbRabbitConfig = $mbConfig->constructRabbitConfig('directExternalApplicationsExchange', array('externalApplicationEventQueue'));
+$mbRabbitConfig = $mbConfig->constructRabbitConfig('directExternalApplicationsExchange', ['externalApplicationEventQueue']);
 $mbConfig->setProperty('messageBroker', new MessageBroker($rabbitCredentials, $mbRabbitConfig));
 
 // Connection to service (MailChimp, Mobile Commons and mb-user-api related queues)
-$mbRabbitConfig = $mbConfig->constructRabbitConfig('transactionalExchange', array('transactionalQueue', 'mobileCommonsQueue', 'userAPIRegistrationQueue', 'userRegistrationQueue'));
+$mbRabbitConfig = $mbConfig->constructRabbitConfig('transactionalExchange', ['transactionalQueue', 'mobileCommonsQueue', 'userAPIRegistrationQueue', 'userRegistrationQueue']);
 $mbConfig->setProperty('messageBrokerServices', new MessageBroker($rabbitCredentials, $mbRabbitConfig));
 
 $mbConfig->setProperty('mbToolbox', new MB_Toolbox());
