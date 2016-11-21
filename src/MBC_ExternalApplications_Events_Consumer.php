@@ -40,7 +40,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
    * @var array $submission
    */
   protected $submission;
-  
+
     /**
    * Extend the base consumer class.
    */
@@ -53,7 +53,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     $this->memberCount = $this->mbToolbox->getDSMemberCount();
   }
 
-  /* 
+  /*
    * Consume entries in externalApplicationEventQueue. Events are activities that are not specific to
    * managing a user account.
    *
@@ -67,7 +67,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
 
     parent::consumeQueue($payload);
     echo '** Consuming: ' . $this->message['email'], PHP_EOL;
-    
+
     if ($this->canProcess()) {
 
       try {
@@ -88,7 +88,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
       echo '- ' . $this->message['email'] . ' failed canProcess(), removing from queue.', PHP_EOL;
       $this->messageBroker->sendAck($this->message['payload']);
     }
-    
+
   }
 
   /**
@@ -170,7 +170,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     if (isset($message['email_tags'])) {
       $this->submission['email_tags'] = $message['email_tags'];
     }
-    
+
     // Mobile
     if (isset($message['mobile'])) {
       $this->submission['mobile'] = $message['mobile'];
@@ -202,7 +202,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
     if (isset($message['birthdate_timestamp'])) {
       $this->submission['birthdate_timestamp'] = (int)$message['birthdate_timestamp'];
     }
-    
+
     // Vote details
     if (isset($message['candidate_id'])) {
       $this->submission['candidate_id'] = $message['candidate_id'];
@@ -211,7 +211,7 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
       $this->submission['candidate_name'] = $message['candidate_name'];
     }
 
-  }  
+  }
 
   /**
    * process(): Submit vote details to appropreate service.
@@ -224,14 +224,14 @@ class MBC_ExternalApplications_Events_Consumer extends MB_Toolbox_BaseConsumer
    * - mobileCommonsQueue - user.registration.*
    */
   protected function process() {
-    
+
     $message = serialize($this->submission);
 
     // Email transactional
-    $this->messageBrokerService->publish($message, 'flf.vote.transactional');
+    $this->messageBrokerService->publish($message, 'cgg.vote.transactional');
 
     // Email and SMS services
-    $this->messageBrokerService->publish($message, 'user.registration.flf');
+    $this->messageBrokerService->publish($message, 'user.registration.cgg');
   }
 
   /*
